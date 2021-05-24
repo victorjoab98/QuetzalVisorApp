@@ -43,10 +43,12 @@
             android:background="@color/tfe_semi_transparent">
 
             <ImageView
+                android:id="@+id/logoApp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/quetzal"
-                />
+                android:clickable="true"
+                android:onClick="imageClick"
+                android:src="@drawable/quetzal" />
         </androidx.appcompat.widget.Toolbar>
 
     </RelativeLayout>

@@ -29,6 +29,7 @@ import android.media.Image;
 import android.media.Image.Plane;
 import android.media.ImageReader;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -46,8 +47,11 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
+import androidx.appcompat.widget.Toolbar;
+
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -97,10 +101,14 @@ public abstract class CameraActivity extends AppCompatActivity
   private Spinner modelSpinner;
   private Spinner deviceSpinner;
   private TextView threadsTextView;
+  private ImageView logoApp;
 
-  private Model model = Model.QUANTIZED_EFFICIENTNET;
+//  private Model model = Model.QUANTIZED_EFFICIENTNET;
+  private Model model = Model.FLOAT_EFFICIENTNET  ;
+  private float confianzaValor = 0F ;
   private Device device = Device.CPU;
   private int numThreads = -1;
+  MediaPlayer mp5, mp10, mp20, mp50, mp100;
 
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
@@ -125,6 +133,7 @@ public abstract class CameraActivity extends AppCompatActivity
     gestureLayout = findViewById(R.id.gesture_layout);
     sheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
     bottomSheetArrowImageView = findViewById(R.id.bottom_sheet_arrow);
+
 
     ViewTreeObserver vto = gestureLayout.getViewTreeObserver();
     vto.addOnGlobalLayoutListener(
@@ -195,6 +204,27 @@ public abstract class CameraActivity extends AppCompatActivity
     model = Model.valueOf(modelSpinner.getSelectedItem().toString().toUpperCase());
     device = Device.valueOf(deviceSpinner.getSelectedItem().toString());
     numThreads = Integer.parseInt(threadsTextView.getText().toString().trim());
+    logoApp =  (ImageView)findViewById(R.id.logoApp);
+
+  }
+
+  public void imageClick(View view) {
+    float confianza = confianzaValor;
+    try{
+      if(recognitionTextView.getText().toString().equalsIgnoreCase("5") && confianza>60){
+        mp5.start();
+      }else if(recognitionTextView.getText().toString().equalsIgnoreCase("10") && confianza>60){
+        mp10.start();
+      }else if(recognitionTextView.getText().toString().equalsIgnoreCase("20") && confianza>60){
+        mp20.start();
+      }else if(recognitionTextView.getText().toString().equalsIgnoreCase("50") && confianza>60){
+        mp50.start();
+      }else if(recognitionTextView.getText().toString().equalsIgnoreCase("100") && confianza>60){
+        mp100.start();
+      }
+    }catch (Exception e){
+      e.printStackTrace();
+    }
   }
 
   protected int[] getRgbBytes() {
@@ -333,6 +363,14 @@ public abstract class CameraActivity extends AppCompatActivity
     handlerThread = new HandlerThread("inference");
     handlerThread.start();
     handler = new Handler(handlerThread.getLooper());
+
+    mp5 = MediaPlayer.create(this, R.raw.cinco);
+    mp10 = MediaPlayer.create(this, R.raw.diez);
+    mp20 = MediaPlayer.create(this, R.raw.veinte);
+    mp50 = MediaPlayer.create(this, R.raw.cincuenta);
+    mp100 = MediaPlayer.create(this, R.raw.cien);
+
+
   }
 
   @Override
@@ -520,6 +558,12 @@ public abstract class CameraActivity extends AppCompatActivity
     }
   }
 
+  boolean num5 = false;
+  boolean num10 = false;
+  boolean num20 = false;
+  boolean num50 = false;
+  boolean num100 = false;
+
   @UiThread
   protected void showResultsInBottomSheet(List<Recognition> results) {
     if (results != null && results.size() >= 3) {
@@ -529,6 +573,33 @@ public abstract class CameraActivity extends AppCompatActivity
         if (recognition.getConfidence() != null)
           recognitionValueTextView.setText(
               String.format("%.2f", (100 * recognition.getConfidence())) + "%");
+
+        confianzaValor = 100 * recognition.getConfidence();
+//        try{
+//          if(!num5 && recognitionTextView.getText().toString().equalsIgnoreCase("5") && confianza>95){
+//            mp5.start();
+//            num5 = true;
+//            num10 = false; num20 = false; num50=false; num100=false;
+//          }else if(!num10 && recognitionTextView.getText().toString().equalsIgnoreCase("10") && confianza>99){
+//            mp10.start();
+//            num10 = true;
+//            num5 = false; num20 = false; num50=false; num100=false;
+//          }else if(!num20 && recognitionTextView.getText().toString().equalsIgnoreCase("20") && confianza>99){
+//            mp20.start();
+//            num20 = true;
+//            num5 = false; num10 = false; num50=false; num100=false;
+//          }else if(!num50 && recognitionTextView.getText().toString().equalsIgnoreCase("50") && confianza>99){
+//            mp50.start();
+//            num50 = true;
+//            num5 = false; num10 = false; num20=false; num100=false;
+//          }else if(!num100 && recognitionTextView.getText().toString().equalsIgnoreCase("100") && confianza>99){
+//            mp100.start();
+//            num100 = true;
+//            num5 = false; num10 = false; num20=false; num50=false;
+//          }
+//        }catch (Exception e){
+//          e.printStackTrace();
+//        }
       }
 
       Recognition recognition1 = results.get(1);
